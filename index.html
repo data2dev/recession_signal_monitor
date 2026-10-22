@@ -1,0 +1,430 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Recession Signal Monitor</title>
+<meta name="description" content="Daily scorecard of four leading recession signals (yield curve, leading index, credit spreads, jobless claims) plus the Sahm rule, with our own recorded history.">
+<style>
+:root {
+  color-scheme: light;
+  --bg: #f6f5f1;
+  --surface: #fcfcfb;
+  --ink: #0b0b0b;
+  --ink-2: #52514e;
+  --ink-3: #6f6e69;
+  --line: rgba(11,11,11,0.10);
+  --grid: #e1e0d9;
+  --axis: #c3c2b7;
+  --series: #2a78d6;
+  --ref: #898781;
+  --calm: #0ca30c;  --calm-bg: #e7f5e7;  --calm-ink: #075f07;
+  --weak: #fab219;  --weak-bg: #fdf3dc;  --weak-ink: #7a5200;
+  --warn: #d03b3b;  --warn-bg: #fbe9e9;  --warn-ink: #8f2020;
+  --na-bg: #efeee9; --na-ink: #52514e;
+  --serif: "Iowan Old Style", "Palatino Linotype", Palatino, Georgia, "Times New Roman", serif;
+  --sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Inter, Roboto, "Helvetica Neue", Arial, sans-serif;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    color-scheme: dark;
+    --bg: #121211; --surface: #1a1a19; --ink: #f0efec; --ink-2: #c3c2b7; --ink-3: #9a998f;
+    --line: rgba(255,255,255,0.10); --grid: #2c2c2a; --axis: #383835; --series: #3987e5; --ref: #898781;
+    --calm-bg: #12301a; --calm-ink: #8fdc8f; --weak-bg: #3a2c08; --weak-ink: #f7cf6e;
+    --warn-bg: #3d1717; --warn-ink: #f2a3a3; --na-bg: #262624; --na-ink: #c3c2b7;
+  }
+}
+:root[data-theme="dark"] {
+  color-scheme: dark;
+  --bg: #121211; --surface: #1a1a19; --ink: #f0efec; --ink-2: #c3c2b7; --ink-3: #9a998f;
+  --line: rgba(255,255,255,0.10); --grid: #2c2c2a; --axis: #383835; --series: #3987e5; --ref: #898781;
+  --calm-bg: #12301a; --calm-ink: #8fdc8f; --weak-bg: #3a2c08; --weak-ink: #f7cf6e;
+  --warn-bg: #3d1717; --warn-ink: #f2a3a3; --na-bg: #262624; --na-ink: #c3c2b7;
+}
+* { box-sizing: border-box; }
+html, body { margin: 0; }
+body { background: var(--bg); color: var(--ink); font: 15px/1.55 var(--sans); -webkit-font-smoothing: antialiased; }
+.wrap { max-width: 1080px; margin: 0 auto; padding: 32px 20px 64px; }
+header.top { display: flex; justify-content: space-between; align-items: baseline; gap: 16px; flex-wrap: wrap; border-bottom: 1px solid var(--line); padding-bottom: 14px; }
+h1 { font: 500 22px/1.2 var(--sans); margin: 0; letter-spacing: -0.01em; }
+.meta { color: var(--ink-3); font-size: 13px; }
+h2 { font: 500 17px/1.3 var(--sans); margin: 40px 0 4px; }
+.sub { color: var(--ink-2); margin: 0 0 16px; max-width: 70ch; }
+.hero { display: grid; grid-template-columns: auto 1fr; gap: 28px 40px; align-items: center; padding: 28px 0 8px; }
+.score { font: 400 88px/0.9 var(--serif); font-variant-numeric: lining-nums tabular-nums; letter-spacing: -0.02em; }
+.score small { font-size: 34px; color: var(--ink-3); }
+.verdict { display: flex; flex-direction: column; gap: 10px; }
+.verdict p { margin: 0; max-width: 62ch; color: var(--ink-2); }
+.verdict .headline { font: 500 20px/1.3 var(--sans); color: var(--ink); }
+.meter { display: grid; grid-template-columns: repeat(4, 1fr); gap: 2px; max-width: 420px; }
+.meter span { height: 10px; background: var(--grid); }
+.meter span:first-child { border-radius: 4px 0 0 4px; } .meter span:last-child { border-radius: 0 4px 4px 0; }
+.meter-key { display: grid; grid-template-columns: repeat(4, 1fr); max-width: 420px; font-size: 12px; color: var(--ink-3); }
+.pill { display: inline-flex; align-items: center; gap: 6px; font-size: 12.5px; font-weight: 500; padding: 3px 10px 3px 8px; border-radius: 999px; white-space: nowrap; }
+.pill svg { width: 13px; height: 13px; flex: none; }
+.s-calm { background: var(--calm-bg); color: var(--calm-ink); }
+.s-weak { background: var(--weak-bg); color: var(--weak-ink); }
+.s-warning { background: var(--warn-bg); color: var(--warn-ink); }
+.s-unavailable { background: var(--na-bg); color: var(--na-ink); }
+.grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; }
+.card { background: var(--surface); border: 1px solid var(--line); border-radius: 12px; padding: 18px 18px 14px; display: flex; flex-direction: column; gap: 8px; min-width: 0; }
+.card-head { display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; }
+.card h3 { font: 500 15px/1.3 var(--sans); margin: 0; }
+.card .what { font-size: 12.5px; color: var(--ink-3); margin: 2px 0 0; }
+.reading { display: flex; align-items: baseline; gap: 10px; flex-wrap: wrap; }
+.reading .val { font: 400 34px/1 var(--serif); font-variant-numeric: lining-nums tabular-nums; }
+.reading .asof { font-size: 12.5px; color: var(--ink-3); }
+.reason { margin: 0; color: var(--ink-2); font-size: 14px; }
+.stale { font-size: 12px; color: var(--warn-ink); }
+.chart { position: relative; width: 100%; }
+.chart svg { display: block; width: 100%; height: auto; overflow: visible; }
+.chart text { font: 11px var(--sans); fill: var(--ink-3); }
+.tip { position: absolute; pointer-events: none; background: var(--ink); color: var(--bg); font-size: 12px; padding: 5px 8px; border-radius: 6px; white-space: nowrap; transform: translate(-50%, calc(-100% - 10px)); opacity: 0; transition: opacity .08s; font-variant-numeric: tabular-nums; }
+details { font-size: 13px; color: var(--ink-2); }
+details summary { cursor: pointer; color: var(--ink-3); width: max-content; }
+details p { margin: 6px 0 0; }
+.confirm { grid-column: 1 / -1; }
+.confirm-body { display: grid; grid-template-columns: minmax(0, 260px) minmax(0, 1fr); gap: 20px; align-items: center; }
+table { width: 100%; border-collapse: collapse; font-size: 13.5px; font-variant-numeric: tabular-nums; }
+th, td { text-align: left; padding: 8px 10px; border-bottom: 1px solid var(--line); white-space: nowrap; }
+th { font-weight: 500; color: var(--ink-3); font-size: 12.5px; }
+.tbl { background: var(--surface); border: 1px solid var(--line); border-radius: 12px; overflow-x: auto; }
+.row-actions { display: flex; gap: 16px; align-items: center; margin: 10px 0 0; font-size: 13.5px; }
+a { color: var(--series); }
+.ctx td:nth-child(n+2), .ctx th:nth-child(n+2) { text-align: center; }
+.note { font-size: 13px; color: var(--ink-3); max-width: 75ch; }
+.empty { color: var(--ink-3); font-size: 14px; padding: 18px; }
+footer { margin-top: 48px; padding-top: 16px; border-top: 1px solid var(--line); font-size: 12.5px; color: var(--ink-3); }
+footer p { margin: 4px 0; max-width: 85ch; }
+.sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); }
+@media (max-width: 760px) {
+  .wrap { padding: 20px 16px 48px; }
+  .hero { grid-template-columns: 1fr; gap: 14px; }
+  .score { font-size: 72px; }
+  .grid { grid-template-columns: minmax(0, 1fr); }
+  .confirm-body { grid-template-columns: minmax(0, 1fr); }
+}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="top">
+    <h1>Recession signal monitor</h1>
+    <div class="meta" id="updated">Loading…</div>
+  </header>
+
+  <section class="hero" aria-live="polite">
+    <div class="score" id="score">–<small>/4</small></div>
+    <div class="verdict">
+      <div class="headline" id="headline">&nbsp;</div>
+      <div>
+        <div class="meter" id="meter" aria-hidden="true"><span></span><span></span><span></span><span></span></div>
+        <div class="meter-key"><span>0</span><span>1</span><span>2 · elevated</span><span>3+ · high</span></div>
+      </div>
+      <p id="explain"></p>
+    </div>
+  </section>
+
+  <h2>The four leading signals</h2>
+  <p class="sub">Each signal scores 1 for a warning, ½ for a weak warning, and 0 when calm. Charts start in 2022, after the pandemic swings; dashed lines mark the warning thresholds.</p>
+  <div class="grid" id="pillars"></div>
+
+  <h2>Our recorded history</h2>
+  <p class="sub">One row is saved per day the update runs, so this record builds up from the first run onward. It shows what the scorecard said at the time, before any later data revisions.</p>
+  <div class="card" style="margin-bottom:16px">
+    <div class="chart" id="score-chart"></div>
+  </div>
+  <div class="tbl" id="history-table"></div>
+  <div class="row-actions"><a href="data/history.csv" download>Download history.csv</a><span class="meta" id="history-count"></span></div>
+
+  <h2>How to read the score</h2>
+  <p class="sub">A rough tally of how these signals behaved before past US recessions and in false alarms. The cells are judgment calls, and the sample is small, so treat this as a pattern, not a rule.</p>
+  <div class="tbl">
+    <table class="ctx">
+      <thead><tr><th>Episode</th><th>Yield curve</th><th>Leading index</th><th>Credit spreads</th><th>Jobless claims</th><th>Signals on</th></tr></thead>
+      <tbody>
+        <tr><td>1969–70 recession</td><td>yes</td><td>yes</td><td>yes</td><td>yes</td><td>4</td></tr>
+        <tr><td>1973–75 recession</td><td>yes</td><td>yes</td><td>weak</td><td>weak</td><td>2 + 2 weak</td></tr>
+        <tr><td>1980 recession</td><td>yes</td><td>yes</td><td>weak</td><td>yes</td><td>3 + 1 weak</td></tr>
+        <tr><td>1981–82 recession</td><td>yes</td><td>yes</td><td>weak</td><td>weak</td><td>2 + 2 weak</td></tr>
+        <tr><td>1990–91 recession</td><td>yes</td><td>weak</td><td>yes</td><td>yes</td><td>3 + 1 weak</td></tr>
+        <tr><td>2001 recession</td><td>yes</td><td>yes</td><td>yes</td><td>yes</td><td>4</td></tr>
+        <tr><td>2007–09 recession</td><td>yes</td><td>yes</td><td>yes</td><td>yes</td><td>4</td></tr>
+        <tr><td>2020 (COVID shock)</td><td>yes*</td><td>no</td><td>no</td><td>no</td><td>1</td></tr>
+        <tr><td>1966–67 false alarm</td><td>yes</td><td>yes</td><td>weak</td><td>no</td><td>2 + 1 weak</td></tr>
+        <tr><td>2019 false alarm</td><td>yes</td><td>weak</td><td>no</td><td>no</td><td>1 + 1 weak</td></tr>
+        <tr><td>2022–24 false alarm</td><td>yes</td><td>yes</td><td>no</td><td>no</td><td>2</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <p class="note">Real recessions usually had three or four signals on, at least partly; false alarms usually had one or two, almost always the yield curve and the leading index. Credit spreads and jobless claims stayed calm in nearly every false alarm, which is why they are the confirming signals. They also tend to move late, often after stocks have started falling. *The 2019 inversion before COVID was coincidental. The historical tally used the Conference Board LEI; this page uses the free OECD leading indicator instead.</p>
+
+  <footer>
+    <p>Data: <a href="https://fred.stlouisfed.org/series/T10Y3M">FRED T10Y3M</a>, <a href="https://fred.stlouisfed.org/series/BAMLH0A0HYM2">FRED BAMLH0A0HYM2</a> (ICE BofA US High Yield OAS), <a href="https://fred.stlouisfed.org/series/ICSA">FRED ICSA</a>, <a href="https://fred.stlouisfed.org/series/SAHMREALTIME">FRED SAHMREALTIME</a>, and the <a href="https://www.oecd.org/en/data/indicators/composite-leading-indicator-cli.html">OECD composite leading indicator</a>. Updated daily by a GitHub Action.</p>
+    <p>This is an educational indicator dashboard, not investment advice. Recession signals have long and variable lead times, they produce false alarms, and they do not predict shocks like a pandemic.</p>
+  </footer>
+</div>
+
+<script>
+const ICONS = {
+  calm: '<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3.5 8.5l3 3 6-7"/></svg>',
+  weak: '<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="8" cy="8" r="5.5"/><path d="M8 5v3.5M8 11h.01"/></svg>',
+  warning: '<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 2l6.5 11.5h-13z"/><path d="M8 6.5v3M8 11.8h.01"/></svg>',
+  unavailable: '<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 8h8"/></svg>',
+};
+const LABELS = { calm: 'Calm', weak: 'Weak warning', warning: 'Warning', unavailable: 'No data' };
+const STATUS_COLOR = { calm: 'var(--calm)', weak: 'var(--weak)', warning: 'var(--warn)', unavailable: 'var(--grid)' };
+// Charts start here so the 2020-21 pandemic spike in claims and the Sahm rule doesn't flatten everything else
+const CHART_SINCE = '2022-01-01';
+const RENDERERS = [];
+const pill = s => `<span class="pill s-${s}">${ICONS[s] || ''}${LABELS[s] || s}</span>`;
+
+const META = {
+  yield_curve: {
+    what: '10-year minus 3-month Treasury yield, in percentage points',
+    fmt: v => (v > 0 ? '+' : '') + v.toFixed(2),
+    unit: ' pts',
+    refs: () => [{ y: 0, label: 'Inverted below 0' }],
+  },
+  leading_index: {
+    what: 'OECD composite leading indicator for the US; 100 is the long-run trend',
+    fmt: v => v.toFixed(2),
+    unit: '',
+    refs: () => [{ y: 100, label: 'Trend = 100' }],
+    monthly: true,
+  },
+  credit_spread: {
+    what: 'Extra yield on junk bonds over Treasuries (ICE BofA high-yield OAS)',
+    fmt: v => v.toFixed(2) + '%',
+    unit: '',
+    refs: pts => [
+      { line: rollingMin(pts, 365).map(([d, v]) => [d, v + 0.75]), label: 'Weak: 12-mo low + 0.75' },
+      { line: rollingMin(pts, 365).map(([d, v]) => [d, v + 1.5]), label: 'Warning: low + 1.5' },
+    ],
+  },
+  jobless_claims: {
+    what: 'Initial claims for unemployment benefits, 4-week average',
+    fmt: v => Math.round(v).toLocaleString('en-US'),
+    unit: '',
+    refs: pts => [
+      { line: rollingMin(pts, 365).map(([d, v]) => [d, v * 1.1]), label: 'Weak: 12-mo low + 10%' },
+      { line: rollingMin(pts, 365).map(([d, v]) => [d, v * 1.2]), label: 'Warning: low + 20%' },
+    ],
+    axisFmt: v => (v / 1000).toFixed(0) + 'k',
+  },
+  sahm: {
+    what: 'Rise in the 3-month average unemployment rate above its low of the prior 12 months',
+    fmt: v => v.toFixed(2),
+    unit: ' pts',
+    refs: () => [{ y: 0.3, label: 'Weak 0.30' }, { y: 0.5, label: 'Triggered 0.50' }],
+    monthly: true,
+  },
+};
+
+function rollingMin(pts, days) {
+  const out = []; const ms = days * 864e5;
+  for (let i = 0; i < pts.length; i++) {
+    const t = Date.parse(pts[i][0]); let m = Infinity;
+    for (let j = i; j >= 0 && t - Date.parse(pts[j][0]) <= ms; j--) m = Math.min(m, pts[j][1]);
+    out.push([pts[i][0], m]);
+  }
+  // only draw once a full year of history exists
+  const first = Date.parse(pts[0][0]) + ms;
+  return out.filter(([d]) => Date.parse(d) >= first);
+}
+
+const fmtDate = (iso, monthly) => {
+  const d = new Date(iso + (iso.length === 7 ? '-01' : '') + 'T12:00:00Z');
+  return monthly ? d.toLocaleDateString('en-US', { month: 'short', year: 'numeric', timeZone: 'UTC' })
+                 : d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric', timeZone: 'UTC' });
+};
+
+/* ---- small SVG line chart with crosshair tooltip ---- */
+function lineChart(el, pts, opts) {
+  if (opts.since) pts = (pts || []).filter(p => p[0] >= opts.since);
+  if (!pts || !pts.length) { el.innerHTML = '<div class="empty">No chart data yet.</div>'; return; }
+  if (opts.refs) opts.refs = opts.refs.map(r => r.line ? { ...r, line: r.line.filter(p => p[0] >= pts[0][0]) } : r);
+  // draw at the container's real pixel width so axis text stays 11px on every screen
+  const W = Math.max(280, Math.round(el.clientWidth) || opts.width || 520), H = opts.height || 170, P = { l: 40, r: 12, t: 10, b: 22 };
+  const xs = pts.map(p => Date.parse(p[0])), ys = pts.map(p => p[1]);
+  const refs = opts.refs || [];
+  let lo = Math.min(...ys), hi = Math.max(...ys);
+  refs.forEach(r => {
+    if (r.y !== undefined) { lo = Math.min(lo, r.y); hi = Math.max(hi, r.y); }
+    if (r.line) r.line.forEach(([, v]) => { lo = Math.min(lo, v); hi = Math.max(hi, v); });
+  });
+  if (opts.yMin !== undefined) lo = Math.min(lo, opts.yMin);
+  if (opts.yMax !== undefined) hi = Math.max(hi, opts.yMax);
+  const pad = (hi - lo) * 0.08 || 1; lo -= pad; hi += pad;
+  const x0 = xs[0], x1 = xs[xs.length - 1];
+  const X = t => P.l + (t - x0) / (x1 - x0 || 1) * (W - P.l - P.r);
+  const Y = v => P.t + (hi - v) / (hi - lo) * (H - P.t - P.b);
+  const ticks = niceTicks(lo, hi, 4);
+  const axisFmt = opts.axisFmt || (v => +v.toFixed(2));
+  const path = arr => arr.map((p, i) => (i ? 'L' : 'M') + X(Date.parse(p[0])).toFixed(1) + ' ' + Y(p[1]).toFixed(1)).join('');
+  const stepPath = arr => arr.map((p, i) => {
+    const x = X(Date.parse(p[0])).toFixed(1), y = Y(p[1]).toFixed(1);
+    if (!i) return `M${x} ${y}`;
+    return `H${x}V${y}`;
+  }).join('');
+  const years = [];
+  for (let y = new Date(x0).getUTCFullYear() + 1; y <= new Date(x1).getUTCFullYear(); y++) years.push(Date.UTC(y, 0, 1));
+  const yearStep = years.length > 7 ? 2 : 1;
+  let s = `<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="${opts.label}">`;
+  ticks.forEach(t => {
+    s += `<line x1="${P.l}" x2="${W - P.r}" y1="${Y(t)}" y2="${Y(t)}" stroke="var(--grid)" stroke-width="1"/>`;
+    s += `<text x="${P.l - 6}" y="${Y(t) + 3.5}" text-anchor="end">${axisFmt(t)}</text>`;
+  });
+  if (x1 - x0 > 400 * 864e5) {
+    years.forEach((t, i) => { if (i % yearStep === 0) s += `<text x="${X(t)}" y="${H - 6}" text-anchor="middle">${new Date(t).getUTCFullYear()}</text>`; });
+  } else {
+    // short spans (e.g. our own record in its first year): a few evenly spaced dates
+    const n = Math.min(5, pts.length);
+    for (let k = 0; k < n; k++) {
+      const t = x0 + (x1 - x0) * k / Math.max(1, n - 1);
+      const lbl = new Date(t).toLocaleDateString('en-US', { month: 'short', day: 'numeric', timeZone: 'UTC' });
+      s += `<text x="${X(t)}" y="${H - 6}" text-anchor="${k === 0 ? 'start' : k === n - 1 ? 'end' : 'middle'}">${lbl}</text>`;
+    }
+  }
+  s += `<line x1="${P.l}" x2="${W - P.r}" y1="${H - P.b}" y2="${H - P.b}" stroke="var(--axis)"/>`;
+  const labels = [];
+  refs.forEach((r, i) => {
+    const dash = i === refs.length - 1 && refs.length > 1 ? '2 3' : '5 4';
+    if (r.y !== undefined) {
+      s += `<line x1="${P.l}" x2="${W - P.r}" y1="${Y(r.y)}" y2="${Y(r.y)}" stroke="var(--ref)" stroke-dasharray="${dash}" stroke-width="1.25"/>`;
+      labels.push({ y: Y(r.y) - 4, text: r.label });
+    } else if (r.line && r.line.length) {
+      s += `<path d="${path(r.line)}" fill="none" stroke="var(--ref)" stroke-dasharray="${dash}" stroke-width="1.25"/>`;
+      labels.push({ y: Y(r.line[r.line.length - 1][1]) - 4, text: r.line.length ? r.label : '' });
+    }
+  });
+  s += `<path d="${opts.step ? stepPath(pts) : path(pts)}" fill="none" stroke="${opts.color || 'var(--series)'}" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>`;
+  // threshold labels: drawn above the data with a surface halo, nudged apart so they never overlap
+  labels.sort((a, b) => b.y - a.y);
+  for (let i = 1; i < labels.length; i++) if (labels[i - 1].y - labels[i].y < 13) labels[i].y = labels[i - 1].y - 13;
+  labels.forEach(l => { s += `<text x="${W - P.r - 8}" y="${Math.max(l.y, 10)}" text-anchor="end" style="paint-order:stroke;stroke:var(--surface);stroke-width:4px;stroke-linejoin:round">${l.text}</text>`; });
+  const lp = pts[pts.length - 1];
+  s += `<circle cx="${X(Date.parse(lp[0]))}" cy="${Y(lp[1])}" r="4" fill="${opts.color || 'var(--series)'}" stroke="var(--surface)" stroke-width="2"/>`;
+  s += `<g class="hover" style="display:none"><line y1="${P.t}" y2="${H - P.b}" stroke="var(--ink-3)" stroke-width="1"/><circle r="4" fill="${opts.color || 'var(--series)'}" stroke="var(--surface)" stroke-width="2"/></g>`;
+  s += `<rect x="${P.l}" y="0" width="${W - P.l - P.r}" height="${H}" fill="transparent" class="hit"/></svg><div class="tip"></div>`;
+  el.innerHTML = s;
+  const svg = el.querySelector('svg'), hov = el.querySelector('.hover'), tip = el.querySelector('.tip');
+  const move = ev => {
+    const r = svg.getBoundingClientRect();
+    const cx = (ev.touches ? ev.touches[0].clientX : ev.clientX) - r.left;
+    const t = x0 + ((cx * W / r.width) - P.l) / (W - P.l - P.r) * (x1 - x0);
+    let i = 0, best = Infinity;
+    xs.forEach((x, k) => { const dd = Math.abs(x - t); if (dd < best) { best = dd; i = k; } });
+    const px = X(xs[i]), py = Y(ys[i]);
+    hov.style.display = ''; hov.querySelector('line').setAttribute('x1', px); hov.querySelector('line').setAttribute('x2', px);
+    hov.querySelector('circle').setAttribute('cx', px); hov.querySelector('circle').setAttribute('cy', py);
+    tip.innerHTML = `${fmtDate(pts[i][0], opts.monthly)} · <b>${opts.fmt(ys[i])}</b>`;
+    tip.style.left = Math.min(Math.max(px * r.width / W, 60), r.width - 60) + 'px';
+    tip.style.top = (py * r.height / H) + 'px'; tip.style.opacity = 1;
+  };
+  const leave = () => { hov.style.display = 'none'; tip.style.opacity = 0; };
+  const hit = svg.querySelector('.hit');
+  hit.addEventListener('mousemove', move); hit.addEventListener('touchstart', move, { passive: true });
+  hit.addEventListener('touchmove', move, { passive: true }); hit.addEventListener('mouseleave', leave); hit.addEventListener('touchend', leave);
+}
+
+function niceTicks(lo, hi, n) {
+  const span = hi - lo, raw = span / n, mag = Math.pow(10, Math.floor(Math.log10(raw)));
+  const step = [1, 2, 2.5, 5, 10].map(m => m * mag).find(s => span / s <= n) || mag * 10;
+  const out = []; for (let v = Math.ceil(lo / step) * step; v <= hi + 1e-9; v += step) out.push(+v.toFixed(10));
+  return out;
+}
+
+function card(sig, series, isConfirm) {
+  const m = META[sig.key] || {};
+  const el = document.createElement('article');
+  el.className = 'card' + (isConfirm ? ' confirm' : '');
+  const value = sig.value === null || sig.value === undefined ? '–' : m.fmt(sig.value) + (m.unit || '');
+  const asof = sig.asof ? 'as of ' + fmtDate(sig.asof, m.monthly) : '';
+  const body = `
+    <div class="reading"><span class="val">${value}</span><span class="asof">${asof}</span></div>
+    <p class="reason">${sig.reason || ''}</p>
+    ${sig.stale ? '<div class="stale">Source failed on the last update; showing the last good reading.</div>' : ''}`;
+  el.innerHTML = `
+    <div class="card-head"><div><h3>${sig.label}</h3><p class="what">${m.what || ''}</p></div>${pill(sig.status)}</div>
+    ${isConfirm ? `<div class="confirm-body"><div>${body}</div><div class="chart"></div></div>` : body + '<div class="chart"></div>'}
+    <details><summary>Scoring rule</summary><p>${(sig.rule || '').replace(/^.*?\.\s+/, '')}</p></details>`;
+  const pts = series[sig.key] || [];
+  const chartEl = el.querySelector('.chart');
+  RENDERERS.push(() => lineChart(chartEl, pts, {
+    label: `${sig.label}, since 2022`, fmt: m.fmt, refs: m.refs ? m.refs(pts) : [],
+    monthly: m.monthly, axisFmt: m.axisFmt, height: isConfirm ? 150 : 170,
+    width: isConfirm ? 700 : 520, since: CHART_SINCE,
+  }));
+  return el;
+}
+
+function parseCSV(text) {
+  const lines = text.trim().split(/\r?\n/); if (lines.length < 2) return [];
+  const head = lines[0].split(',');
+  return lines.slice(1).map(l => { const c = l.split(','); return Object.fromEntries(head.map((h, i) => [h, c[i]])); });
+}
+
+function renderHistory(rows) {
+  const el = document.getElementById('history-table');
+  document.getElementById('history-count').textContent = rows.length ? `${rows.length} day${rows.length > 1 ? 's' : ''} recorded since ${fmtDate(rows[0].run_date)}` : '';
+  const pts = rows.map(r => [r.run_date, +r.score]);
+  const chartEl = document.getElementById('score-chart');
+  if (pts.length < 2) {
+    chartEl.innerHTML = `<div class="empty">The score-history chart appears once there are at least two days of records. ${pts.length ? `First record: ${fmtDate(pts[0][0])}, score ${pts[0][1]}/4.` : ''}</div>`;
+  } else {
+    RENDERERS.push(() => lineChart(chartEl, pts, { label: 'Recorded score over time', fmt: v => v + ' / 4', step: true, yMin: 0, yMax: 4,
+      refs: [{ y: 2, label: 'Elevated 2' }, { y: 3, label: 'High 3' }], height: 150 }));
+  }
+  const keys = [['yield_curve', 'Yield curve'], ['leading_index', 'Leading index'], ['credit_spread', 'Credit spread'], ['jobless_claims', 'Claims'], ['sahm', 'Sahm']];
+  const st = v => { const base = (v || '').split(' ')[0]; return base ? pill(base) + ((v || '').includes('stale') ? ' <span class="meta">stale</span>' : '') : ''; };
+  const recent = rows.slice(-30).reverse();
+  el.innerHTML = `<table><thead><tr><th>Date</th><th>Score</th>${keys.map(k => `<th>${k[1]}</th>`).join('')}</tr></thead><tbody>${
+    recent.map(r => `<tr><td>${fmtDate(r.run_date)}</td><td>${r.score} / 4</td>${keys.map(([k]) => `<td title="${r[k + '_value']} (as of ${r[k + '_asof']})">${st(r[k + '_status'])}</td>`).join('')}</tr>`).join('')
+  }</tbody></table>`;
+}
+
+const LEVEL_TEXT = {
+  low: ['Low recession risk from these signals', 'Fewer than two of the four leading signals are warning. In past cycles, real recessions usually had three or four on.'],
+  elevated: ['Elevated: some signals are warning', 'Two signals on is the typical false-alarm pattern, so this alone has not reliably meant a recession. Watch whether credit spreads and jobless claims join in.'],
+  high: ['High: most leading signals are warning', 'Three or more signals on has historically come before every US recession in the sample, with lead times from a few months to over a year.'],
+};
+
+async function main() {
+  const bust = '?t=' + Date.now();
+  const [latest, series] = await Promise.all([
+    fetch('data/latest.json' + bust).then(r => r.json()),
+    fetch('data/series.json' + bust).then(r => r.json()),
+  ]);
+  const histText = await fetch('data/history.csv' + bust).then(r => r.ok ? r.text() : '').catch(() => '');
+
+  const score = latest.score;
+  document.getElementById('score').innerHTML = `${Number.isInteger(score) ? score : score.toFixed(1)}<small>/${latest.max_score}</small>`;
+  const [head, expl] = LEVEL_TEXT[latest.level] || ['', ''];
+  const sahm = latest.signals.find(s => s.key === 'sahm');
+  document.getElementById('headline').textContent = head;
+  document.getElementById('explain').textContent = expl + (sahm && sahm.status === 'warning' ? ' The Sahm rule has also triggered, which historically means a recession is already under way.' : '');
+  const segs = document.querySelectorAll('#meter span');
+  const color = score >= 3 ? 'var(--warn)' : score >= 2 ? 'var(--weak)' : 'var(--calm)';
+  segs.forEach((el, i) => { const f = Math.max(0, Math.min(1, score - i)); el.style.background = f > 0 ? `linear-gradient(90deg, ${color} ${f * 100}%, var(--grid) ${f * 100}%)` : ''; });
+  document.getElementById('updated').textContent = 'Updated ' + new Date(latest.run_utc).toLocaleString('en-US', { dateStyle: 'medium', timeStyle: 'short' })
+    + (latest.errors && latest.errors.length ? ` · ${latest.errors.length} source(s) failed` : '');
+
+  const grid = document.getElementById('pillars');
+  latest.signals.filter(s => s.forward).forEach(s => grid.appendChild(card(s, series, false)));
+  if (sahm) grid.appendChild(card(sahm, series, true));
+  renderHistory(parseCSV(histText));
+  const drawAll = () => RENDERERS.forEach(fn => fn());
+  drawAll();
+  let lastW = window.innerWidth, timer;
+  window.addEventListener('resize', () => {
+    if (window.innerWidth === lastW) return;
+    lastW = window.innerWidth; clearTimeout(timer); timer = setTimeout(drawAll, 150);
+  });
+}
+main().catch(err => {
+  document.getElementById('updated').textContent = 'Could not load data: ' + err.message;
+});
+</script>
+</body>
+</html>

@@ -1,0 +1,43 @@
+name: Daily signal update
+
+on:
+  schedule:
+    # 15:17 UTC daily (11:17 am New York in summer, 10:17 am in winter).
+    # By then FRED has posted the prior day's yields and spreads, and on
+    # Thursdays the weekly jobless claims.
+    - cron: "17 15 * * *"
+  workflow_dispatch: {}
+
+permissions:
+  contents: write
+
+concurrency:
+  group: signal-update
+  cancel-in-progress: false
+
+jobs:
+  update:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Fetch data and score signals
+        run: python scripts/update_signals.py
+
+      - name: Commit updated data
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add data/
+          if git diff --cached --quiet; then
+            echo "No changes to commit."
+          else
+            git commit -m "Daily signal update $(date -u +%Y-%m-%d)"
+            git pull --rebase origin "${GITHUB_REF_NAME}"
+            git push
+          fi

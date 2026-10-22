@@ -1,0 +1,72 @@
+{
+  "run_date": "2026-10-22",
+  "run_utc": "2026-10-22T20:02:44Z",
+  "score": 0.5,
+  "max_score": 4,
+  "level": "low",
+  "signals_available": 4,
+  "signals": [
+    {
+      "value": 0.88,
+      "asof": "2026-10-21",
+      "status": "weak",
+      "reason": "Positive now (+0.97 pts) but was inverted as recently as Aug 2025. Recessions have often begun after the curve re-steepens.",
+      "metric": 0.967,
+      "stale": false,
+      "key": "yield_curve",
+      "label": "Yield curve (10y - 3m)",
+      "forward": true,
+      "rule": "10-year minus 3-month Treasury spread (FRED T10Y3M), percentage points. warning: 20-day average below 0 (curve inverted) weak: not inverted now, but a monthly average was below 0 within the last 18 months (recessions have often started soon after the curve un-inverts), or the 20-day average is below 0.25 (nearly flat) calm: otherwise"
+    },
+    {
+      "value": 101.0,
+      "asof": "2026-09",
+      "status": "calm",
+      "reason": "Above trend (101.00) and rising (+0.24 over 3 months).",
+      "metric": 0.568,
+      "stale": false,
+      "key": "leading_index",
+      "label": "Leading index (OECD CLI)",
+      "forward": true,
+      "rule": "OECD composite leading indicator, US (100 = long-run trend). warning: below 100 and lower than 6 months earlier weak: lower than 3 months earlier, or below 100 calm: above 100 and not falling"
+    },
+    {
+      "value": 3.27,
+      "asof": "2026-10-21",
+      "status": "calm",
+      "reason": "3.27%, which is +0.67 pts above its 12-month low of 2.60%.",
+      "metric": 0.67,
+      "stale": false,
+      "key": "credit_spread",
+      "label": "High-yield credit spread",
+      "forward": true,
+      "rule": "ICE BofA US High Yield option-adjusted spread (FRED BAMLH0A0HYM2), percent. warning: 1.5+ pts above its 12-month low, or above 5.0% weak: 0.75+ pts above its 12-month low, or above 4.0% calm: otherwise"
+    },
+    {
+      "value": 197750,
+      "asof": "2026-10-17",
+      "status": "calm",
+      "reason": "4-week average 197,750, which is +0.0% versus its 12-month low of 197,750.",
+      "metric": 0.0,
+      "latest_week": 194000,
+      "stale": false,
+      "key": "jobless_claims",
+      "label": "Initial jobless claims",
+      "forward": true,
+      "rule": "Initial jobless claims (FRED ICSA), weekly, seasonally adjusted. Uses the 4-week average versus its lowest point in the past 12 months. warning: 20%+ above the 12-month low weak: 10%+ above the 12-month low calm: otherwise"
+    },
+    {
+      "value": 0.0,
+      "asof": "2026-09",
+      "status": "calm",
+      "reason": "0.00, well below the 0.50 trigger.",
+      "metric": 0.0,
+      "stale": false,
+      "key": "sahm",
+      "label": "Sahm rule (confirmation)",
+      "forward": false,
+      "rule": "Real-time Sahm rule (FRED SAHMREALTIME), percentage points. A confirmation signal, not counted in the forward score. warning: 0.50+ (rule triggered; historically a recession is under way) weak: 0.30+ calm: otherwise"
+    }
+  ],
+  "errors": []
+}
