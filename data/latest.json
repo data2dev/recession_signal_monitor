@@ -1,6 +1,6 @@
 {
-  "run_date": "2026-10-25",
-  "run_utc": "2026-10-25T18:26:32Z",
+  "run_date": "2026-10-26",
+  "run_utc": "2026-10-26T20:33:53Z",
   "score": 1.0,
   "max_score": 4,
   "level": "low",
@@ -31,11 +31,11 @@
       "rule": "OECD composite leading indicator, US (100 = long-run trend). warning: below 100 and lower than 6 months earlier weak: lower than 3 months earlier, or below 100 calm: above 100 and not falling"
     },
     {
-      "value": 3.4,
-      "asof": "2026-10-22",
+      "value": 3.38,
+      "asof": "2026-10-23",
       "status": "weak",
-      "reason": "3.40%, which is +0.80 pts above its 12-month low of 2.60%.",
-      "metric": 0.8,
+      "reason": "3.38%, which is +0.78 pts above its 12-month low of 2.60%.",
+      "metric": 0.78,
       "stale": false,
       "key": "credit_spread",
       "label": "High-yield credit spread",
