@@ -1,17 +1,17 @@
 {
-  "run_date": "2026-10-28",
-  "run_utc": "2026-10-28T20:20:23Z",
+  "run_date": "2026-10-29",
+  "run_utc": "2026-10-29T20:20:57Z",
   "score": 0.5,
   "max_score": 4,
   "level": "low",
   "signals_available": 4,
   "signals": [
     {
-      "value": 0.77,
-      "asof": "2026-10-27",
+      "value": 0.87,
+      "asof": "2026-10-28",
       "status": "weak",
       "reason": "Positive now (+0.93 pts) but was inverted as recently as Aug 2025. Recessions have often begun after the curve re-steepens.",
-      "metric": 0.932,
+      "metric": 0.926,
       "stale": false,
       "key": "yield_curve",
       "label": "Yield curve (10y - 3m)",
@@ -31,11 +31,11 @@
       "rule": "OECD composite leading indicator, US (100 = long-run trend). warning: below 100 and lower than 6 months earlier weak: lower than 3 months earlier, or below 100 calm: above 100 and not falling"
     },
     {
-      "value": 3.18,
-      "asof": "2026-10-27",
+      "value": 3.14,
+      "asof": "2026-10-28",
       "status": "calm",
-      "reason": "3.18%, which is +0.58 pts above its 12-month low of 2.60%.",
-      "metric": 0.58,
+      "reason": "3.14%, which is +0.54 pts above its 12-month low of 2.60%.",
+      "metric": 0.54,
       "stale": false,
       "key": "credit_spread",
       "label": "High-yield credit spread",
@@ -43,10 +43,10 @@
       "rule": "ICE BofA US High Yield option-adjusted spread (FRED BAMLH0A0HYM2), percent. warning: 1.5+ pts above its 12-month low, or above 5.0% weak: 0.75+ pts above its 12-month low, or above 4.0% calm: otherwise"
     },
     {
-      "value": 197750,
-      "asof": "2026-10-17",
+      "value": 196750,
+      "asof": "2026-10-24",
       "status": "calm",
-      "reason": "4-week average 197,750, which is +0.0% versus its 12-month low of 197,750.",
+      "reason": "4-week average 196,750, which is +0.0% versus its 12-month low of 196,750.",
       "metric": 0.0,
       "latest_week": 194000,
       "stale": false,
