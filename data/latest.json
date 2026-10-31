@@ -1,17 +1,17 @@
 {
-  "run_date": "2026-10-30",
-  "run_utc": "2026-10-30T19:56:53Z",
+  "run_date": "2026-10-31",
+  "run_utc": "2026-10-31T19:21:14Z",
   "score": 0.5,
   "max_score": 4,
   "level": "low",
   "signals_available": 4,
   "signals": [
     {
-      "value": 0.8,
-      "asof": "2026-10-29",
+      "value": 0.78,
+      "asof": "2026-10-30",
       "status": "weak",
-      "reason": "Positive now (+0.91 pts) but was inverted as recently as Aug 2025. Recessions have often begun after the curve re-steepens.",
-      "metric": 0.911,
+      "reason": "Positive now (+0.90 pts) but was inverted as recently as Aug 2025. Recessions have often begun after the curve re-steepens.",
+      "metric": 0.896,
       "stale": false,
       "key": "yield_curve",
       "label": "Yield curve (10y - 3m)",
