@@ -1,7 +1,7 @@
 {
-  "run_date": "2026-11-09",
-  "run_utc": "2026-11-09T23:48:00Z",
-  "score": 1.0,
+  "run_date": "2026-11-10",
+  "run_utc": "2026-11-10T21:20:16Z",
+  "score": 0.5,
   "max_score": 4,
   "level": "low",
   "signals_available": 4,
@@ -19,11 +19,11 @@
       "rule": "10-year minus 3-month Treasury spread (FRED T10Y3M), percentage points. warning: 20-day average below 0 (curve inverted) weak: not inverted now, but a monthly average was below 0 within the last 18 months (recessions have often started soon after the curve un-inverts), or the 20-day average is below 0.25 (nearly flat) calm: otherwise"
     },
     {
-      "value": 101.0,
-      "asof": "2026-09",
+      "value": 100.96,
+      "asof": "2026-10",
       "status": "calm",
-      "reason": "Above trend (101.00) and rising (+0.24 over 3 months).",
-      "metric": 0.568,
+      "reason": "Above trend (100.96) and rising (+0.14 over 3 months).",
+      "metric": 0.444,
       "stale": false,
       "key": "leading_index",
       "label": "Leading index (OECD CLI)",
@@ -31,11 +31,11 @@
       "rule": "OECD composite leading indicator, US (100 = long-run trend). warning: below 100 and lower than 6 months earlier weak: lower than 3 months earlier, or below 100 calm: above 100 and not falling"
     },
     {
-      "value": 3.42,
-      "asof": "2026-11-06",
-      "status": "weak",
-      "reason": "3.42%, which is +0.82 pts above its 12-month low of 2.60%.",
-      "metric": 0.82,
+      "value": 3.34,
+      "asof": "2026-11-09",
+      "status": "calm",
+      "reason": "3.34%, which is +0.74 pts above its 12-month low of 2.60%.",
+      "metric": 0.74,
       "stale": false,
       "key": "credit_spread",
       "label": "High-yield credit spread",
