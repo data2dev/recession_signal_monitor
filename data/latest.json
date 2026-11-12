@@ -1,6 +1,6 @@
 {
-  "run_date": "2026-11-11",
-  "run_utc": "2026-11-11T22:00:00Z",
+  "run_date": "2026-11-12",
+  "run_utc": "2026-11-12T21:51:36Z",
   "score": 0.5,
   "max_score": 4,
   "level": "low",
@@ -31,11 +31,11 @@
       "rule": "OECD composite leading indicator, US (100 = long-run trend). warning: below 100 and lower than 6 months earlier weak: lower than 3 months earlier, or below 100 calm: above 100 and not falling"
     },
     {
-      "value": 3.34,
-      "asof": "2026-11-09",
+      "value": 3.3,
+      "asof": "2026-11-11",
       "status": "calm",
-      "reason": "3.34%, which is +0.74 pts above its 12-month low of 2.60%.",
-      "metric": 0.74,
+      "reason": "3.30%, which is +0.70 pts above its 12-month low of 2.60%.",
+      "metric": 0.7,
       "stale": false,
       "key": "credit_spread",
       "label": "High-yield credit spread",
@@ -43,12 +43,12 @@
       "rule": "ICE BofA US High Yield option-adjusted spread (FRED BAMLH0A0HYM2), percent. warning: 1.5+ pts above its 12-month low, or above 5.0% weak: 0.75+ pts above its 12-month low, or above 4.0% calm: otherwise"
     },
     {
-      "value": 194750,
-      "asof": "2026-10-31",
+      "value": 195250,
+      "asof": "2026-11-07",
       "status": "calm",
-      "reason": "4-week average 194,750, which is +0.0% versus its 12-month low of 194,750.",
+      "reason": "4-week average 195,250, which is +0.0% versus its 12-month low of 195,250.",
       "metric": 0.0,
-      "latest_week": 189000,
+      "latest_week": 200000,
       "stale": false,
       "key": "jobless_claims",
       "label": "Initial jobless claims",
